@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wireframe: url-to-markdown</title>
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  :root {
+    --w-bg: #f5f5f5;
+    --w-border: #ccc;
+    --w-text: #555;
+    --w-muted: #aaa;
+    --w-fill: #eee;
+  }
+
+  body.w-dark {
+    --w-bg: #2b2b2b;
+    --w-border: #4a4a4a;
+    --w-text: #d8d8d8;
+    --w-muted: #888;
+    --w-fill: #3a3a3a;
+  }
+
+  * {
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    color: var(--w-text);
+  }
+
+  body { background: var(--w-bg); transition: background .15s, color .15s; }
+
+  /* Screen nav */
+  nav { position: sticky; top: 0; z-index: 40; background: var(--w-bg); border-bottom: 1px solid var(--w-border); }
+  nav button { cursor: pointer; font-size: 13px; }
+  nav button:hover { background: var(--w-fill); border-radius: 4px; }
+  nav button.active { font-weight: bold; border-bottom: 2px solid var(--w-text); }
+
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* Viewport toggle */
+  .vp-toggle button {
+    font-size: 12px; padding: 2px 8px;
+    border: 1px solid var(--w-border); cursor: pointer; background: var(--w-bg);
+  }
+  .vp-toggle button:first-child { border-radius: 4px 0 0 4px; }
+  .vp-toggle button:last-child { border-radius: 0 4px 4px 0; border-left: none; }
+  .vp-toggle button.active { background: var(--w-text); color: var(--w-bg); }
+
+  /* Mobile viewport frame */
+  body.viewport-mobile .screen-content {
+    max-width: 375px !important;
+    margin: 24px auto !important;
+    border: 2px solid var(--w-border);
+    border-radius: 24px;
+    min-height: 667px;
+    background: var(--w-bg);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    padding: 32px 16px !important;
+  }
+
+  /* Screen Notes */
+  .screen-notes {
+    background: #fffde7;
+    border-left: 3px solid #ffd54f;
+    padding: 12px 16px;
+    margin-top: 24px;
+    font-size: 13px;
+    border-radius: 0 4px 4px 0;
+  }
+  .screen-notes summary {
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 12px;
+    color: #b0a050;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .screen-notes p { margin: 6px 0 2px; color: #777; }
+  .screen-notes ul { margin: 4px 0 0 16px; padding: 0; color: #777; }
+  .screen-notes li { margin: 2px 0; }
+  body.w-dark .screen-notes { background: #3a341a; border-left-color: #7a6a20; }
+  body.w-dark .screen-notes p,
+  body.w-dark .screen-notes ul { color: #b8b090; }
+
+  /* Wireframe component classes (w- prefix) */
+  .w-input {
+    border: 1px solid var(--w-border);
+    background: var(--w-bg);
+    padding: 8px 12px;
+    font-size: 13px;
+    border-radius: 6px;
+    outline: none;
+  }
+  .w-btn-primary, .w-btn-secondary, .w-btn-ghost {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    font-size: 13px; padding: 8px 14px; border-radius: 6px; cursor: pointer;
+  }
+  .w-btn-primary { background: var(--w-text); color: var(--w-bg); border: 1px solid var(--w-text); }
+  .w-btn-primary * { color: var(--w-bg); }
+  .w-btn-secondary { background: var(--w-bg); border: 1px solid var(--w-border); }
+  .w-btn-ghost { background: transparent; border: none; }
+  .w-btn-ghost:hover { background: var(--w-fill); border-radius: 6px; }
+  .w-icon-btn {
+    width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;
+    border: 1px solid var(--w-border); border-radius: 6px; cursor: pointer; background: var(--w-bg);
+  }
+  .w-chip {
+    border: 1px solid var(--w-border); border-radius: 999px; padding: 4px 10px; cursor: pointer; background: var(--w-bg);
+  }
+  .w-chip.active { background: var(--w-text); color: var(--w-bg); }
+  .w-error-box {
+    display: flex; align-items: flex-start; gap: 8px;
+    border: 1px solid var(--w-border); background: var(--w-fill);
+    padding: 12px 14px; border-radius: 6px; font-size: 13px;
+  }
+  .w-panel { border: 1px solid var(--w-border); border-radius: 8px; background: var(--w-bg); }
+  .w-radio-row { display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; }
+  .w-markdown-body { border: 1px solid var(--w-border); border-radius: 8px; padding: 16px; background: var(--w-fill); }
+  .w-markdown-body p { margin: 0 0 10px; }
+  .w-toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: var(--w-text); color: var(--w-bg); padding: 8px 16px; border-radius: 6px;
+    font-size: 12px; z-index: 50;
+  }
+  .w-toast * { color: var(--w-bg); }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body class="p-0 m-0 viewport-mobile">
+
+<nav class="flex items-center gap-4 px-6 py-2">
+  <span class="text-xs" style="color:var(--w-muted)">wireframe</span>
+  <button id="nav-0" onclick="show(0)" class="px-2 py-1">입력 화면</button>
+  <button id="nav-1" onclick="show(1)" class="px-2 py-1">결과 화면</button>
+  <div class="vp-toggle flex ml-auto">
+    <button id="vp-desktop" onclick="setViewport('desktop')">Desktop</button>
+    <button id="vp-mobile" onclick="setViewport('mobile')" class="active">Mobile</button>
+  </div>
+</nav>
+
+<div id="screen-0" class="screen" data-scenario="scenario-1, scenario-3, scenario-4">
+  <div class="screen-content @container max-w-6xl mx-auto p-6">
+
+    <h2 class="text-lg font-bold mb-5" style="color:var(--w-muted); border-bottom:1px solid var(--w-border); padding-bottom:8px;">
+      입력 화면
+    </h2>
+
+    <div class="w-app-header flex items-center justify-between mb-8">
+      <span class="font-bold text-base">URL → Markdown</span>
+      <button class="w-icon-btn" onclick="toggleDark()" title="다크모드 토글">
+        <i data-lucide="moon" style="width:16px;height:16px"></i>
+      </button>
+    </div>
+
+    <div class="max-w-2xl mx-auto">
+      <p class="text-sm mb-4" style="color:var(--w-muted)">웹 페이지 URL을 붙여넣으면 본문을 Markdown으로 변환합니다.</p>
+
+      <div class="flex flex-col @md:flex-row gap-2">
+        <input type="text" placeholder="https://example.com/article" class="w-input flex-1" />
+        <button class="w-btn-primary" onclick="show(1)">
+          <i data-lucide="arrow-right" style="width:14px;height:14px"></i> 변환
+        </button>
+      </div>
+
+      <!-- 시나리오 데모 토글 (실제 기능 아님, wireframe 상태 전환용) -->
+      <div class="mt-3 flex gap-2 text-xs">
+        <span style="color:var(--w-muted)">데모:</span>
+        <button onclick="setInputScenario('empty')" class="w-chip active" id="chip-empty">기본(빈 화면)</button>
+        <button onclick="setInputScenario('error')" class="w-chip" id="chip-error">에러 상태</button>
+      </div>
+
+      <div data-scenario="scenario-3" id="error-box" class="hidden mt-4 w-error-box">
+        <i data-lucide="alert-circle" style="width:16px;height:16px;flex-shrink:0"></i>
+        <span>페이지를 변환할 수 없습니다. URL을 확인하고 다시 시도해주세요.</span>
+      </div>
+    </div>
+
+    <div class="screen-notes">
+      <details open>
+        <summary>Notes</summary>
+        <p>URL 입력과 에러 표시를 담당하는 최초/초기화 화면</p>
+        <ul>
+          <li>트리거: 첫 방문 시, 또는 결과 화면에서 "지우기" 클릭 시 진입</li>
+          <li>인터랙션: URL 입력 후 "변환" 클릭 → 결과 화면 전환 / 변환 실패 → 이 화면에 에러 박스 노출</li>
+          <li>전환: "변환" 성공 → 결과 화면(screen-1)으로 이동, 실패 → 이 화면 유지</li>
+        </ul>
+      </details>
+    </div>
+
+  </div>
+</div>
+
+<div id="screen-1" class="screen" data-scenario="scenario-1, scenario-2, scenario-5, scenario-6, scenario-7, scenario-8, scenario-9, scenario-10">
+  <div class="screen-content @container max-w-6xl mx-auto p-6">
+
+    <h2 class="text-lg font-bold mb-5" style="color:var(--w-muted); border-bottom:1px solid var(--w-border); padding-bottom:8px;">
+      결과 화면
+    </h2>
+
+    <div class="w-app-header flex items-center justify-between mb-4">
+      <span class="font-bold text-base">URL → Markdown</span>
+      <div class="flex items-center gap-2">
+        <button class="w-btn-ghost text-xs" onclick="show(0)">
+          <i data-lucide="rotate-ccw" style="width:14px;height:14px"></i> 지우기
+        </button>
+        <button class="w-icon-btn" onclick="toggleDark()" title="다크모드 토글">
+          <i data-lucide="moon" style="width:16px;height:16px"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- 시나리오 데모 토글 (실제 기능 아님, wireframe 상태 전환용) -->
+    <div class="mb-4 flex flex-wrap gap-2 text-xs">
+      <span style="color:var(--w-muted)">데모:</span>
+      <button onclick="setResultScenario('author')" class="w-chip active" id="chip-author">저자 있음</button>
+      <button onclick="setResultScenario('no-author')" class="w-chip" id="chip-no-author">저자 없음</button>
+    </div>
+
+    <div class="flex flex-col @md:flex-row gap-6">
+
+      <div class="flex-1 min-w-0">
+        <div class="mb-4 pb-4" style="border-bottom:1px solid var(--w-border)">
+          <h1 class="text-xl font-bold">인공지능이 바꾸는 미래의 노동시장</h1>
+          <p id="author-line" class="text-sm mt-1" style="color:var(--w-muted)">by 김민준</p>
+        </div>
+        <div class="w-markdown-body text-sm leading-relaxed">
+          <p># 인공지능이 바꾸는 미래의 노동시장</p>
+          <p>지난 10년간 인공지능 기술은 다양한 산업 분야에서 노동 방식을 근본적으로 바꿔놓았다. 특히 반복적인 업무를 자동화하는 흐름이 가속화되고 있다.</p>
+          <p>## 자동화의 영향</p>
+          <p>제조업뿐 아니라 사무직 영역에서도 문서 작성, 데이터 정리 등 업무 상당수가 자동화 도구로 대체되는 추세다.</p>
+          <p>## 앞으로의 전망</p>
+          <p>전문가들은 새로운 직무가 등장하는 동시에 재교육의 중요성이 커질 것이라 전망한다.</p>
+        </div>
+      </div>
+
+      <div class="w-full @md:w-72 shrink-0">
+        <div class="w-panel p-4 mb-4">
+          <div class="text-xs font-bold mb-2" style="color:var(--w-muted)">내보내기</div>
+          <div class="flex flex-col gap-2">
+            <button class="w-btn-secondary" onclick="showToast('복사됨')">
+              <i data-lucide="copy" style="width:14px;height:14px"></i> 복사하기
+            </button>
+            <button class="w-btn-secondary" onclick="showToast('.md 파일 다운로드됨')">
+              <i data-lucide="download" style="width:14px;height:14px"></i> .md 파일 다운로드
+            </button>
+          </div>
+        </div>
+
+        <div class="w-panel p-4">
+          <div class="text-xs font-bold mb-2" style="color:var(--w-muted)">프롬프트와 함께 열기</div>
+          <div class="flex flex-col gap-2 mb-3">
+            <label class="w-radio-row"><input type="radio" name="prompt" checked onclick="setPromptMode('none')"> 없음</label>
+            <label class="w-radio-row"><input type="radio" name="prompt" onclick="setPromptMode('preset')"> 요약해줘</label>
+            <label class="w-radio-row"><input type="radio" name="prompt" onclick="setPromptMode('preset')"> 한국어로 번역해줘</label>
+            <label class="w-radio-row"><input type="radio" name="prompt" onclick="setPromptMode('preset')"> 쉽게 설명해줘</label>
+            <label class="w-radio-row"><input type="radio" name="prompt" onclick="setPromptMode('custom')"> 직접 입력</label>
+          </div>
+          <input id="custom-prompt-input" type="text" placeholder="프롬프트를 입력하세요" class="w-input hidden mb-3" style="width:100%" />
+          <div class="flex flex-col gap-2">
+            <button class="w-btn-primary" onclick="showToast('클립보드에 복사됨, chatgpt.com에 붙여넣으세요')">
+              <i data-lucide="external-link" style="width:14px;height:14px"></i> ChatGPT로 열기
+            </button>
+            <button class="w-btn-secondary" onclick="showToast('클립보드에 복사됨, claude.ai에 붙여넣으세요')">
+              <i data-lucide="external-link" style="width:14px;height:14px"></i> Claude로 열기
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="screen-notes">
+      <details open>
+        <summary>Notes</summary>
+        <p>변환 결과와 내보내기/AI로 이어서 열기 액션을 모아둔 화면</p>
+        <ul>
+          <li>트리거: 입력 화면에서 "변환" 성공 시 진입</li>
+          <li>인터랙션: "복사하기"/".md 다운로드" 클릭 → 토스트 표시 / 프롬프트 라디오 선택 → "직접 입력" 선택 시에만 텍스트 인풋 노출 / "ChatGPT·Claude로 열기" 클릭 → 새 탭 열림 + 토스트 표시</li>
+          <li>전환: "지우기" 클릭 → 입력 화면(screen-0)으로 이동, 입력·결과 모두 초기화</li>
+        </ul>
+      </details>
+    </div>
+
+  </div>
+</div>
+
+<div id="toast" class="w-toast hidden"></div>
+
+<script>
+var currentScreen = 0;
+var screenIds = [];
+
+function show(id) {
+  document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
+  document.getElementById('screen-' + id).classList.add('active');
+  document.querySelectorAll('nav button[id^="nav-"]').forEach(function(b) { b.classList.remove('active'); });
+  document.getElementById('nav-' + id).classList.add('active');
+  currentScreen = screenIds.indexOf(id);
+}
+
+function setViewport(mode) {
+  document.body.classList.remove('viewport-mobile', 'viewport-desktop');
+  document.body.classList.add('viewport-' + mode);
+  document.querySelectorAll('.vp-toggle button').forEach(function(b) { b.classList.remove('active'); });
+  document.getElementById('vp-' + mode).classList.add('active');
+}
+
+function toggleDark() {
+  document.body.classList.toggle('w-dark');
+}
+
+function setInputScenario(mode) {
+  document.getElementById('chip-empty').classList.toggle('active', mode === 'empty');
+  document.getElementById('chip-error').classList.toggle('active', mode === 'error');
+  document.getElementById('error-box').classList.toggle('hidden', mode !== 'error');
+}
+
+function setResultScenario(mode) {
+  document.getElementById('chip-author').classList.toggle('active', mode === 'author');
+  document.getElementById('chip-no-author').classList.toggle('active', mode === 'no-author');
+  document.getElementById('author-line').classList.toggle('hidden', mode === 'no-author');
+}
+
+function setPromptMode(mode) {
+  document.getElementById('custom-prompt-input').classList.toggle('hidden', mode !== 'custom');
+}
+
+var toastTimer = null;
+function showToast(message) {
+  var toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.classList.remove('hidden');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function() { toast.classList.add('hidden'); }, 1800);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('nav button[id^="nav-"]').forEach(function(b) {
+    screenIds.push(parseInt(b.id.replace('nav-', '')));
+  });
+  var first = document.querySelector('nav button[id^="nav-"]');
+  if (first) first.click();
+  lucide.createIcons();
+});
+</script>
+</body>
+</html>
